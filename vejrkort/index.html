@@ -1,0 +1,178 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=latin1">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+
+    <title>Egedal Vejrkort</title>
+    <link rel="stylesheet" href="css/leaflet.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet-src.js"></script>
+    <script src="dist/leaflet-realtime.js"></script>
+
+    <script src="https://rawgit.com/mapshakers/leaflet-icon-pulse/master/src/L.Icon.Pulse.js"></script>
+    <link rel="stylesheet" href="https://rawgit.com/mapshakers/leaflet-icon-pulse/master/src/L.Icon.Pulse.css" />
+
+    <style>
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            width: 100%
+        }
+
+        #fragment {
+            position: absolute;
+            font-size: 12px;
+            font-family: tahoma;
+            z-index: 1000;
+            height: 115px;
+            border: 2px solid#ccc;
+            background-color: white;
+            color: #555;
+            display: block;
+            padding: 10px;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        #fragment:hover {
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, .2);
+
+        }
+
+        #fragment img {
+            float: left;
+            margin-right: 10px;
+        }
+
+
+        #fragment h3 {
+            padding: 0;
+            margin: 0;
+            color: #369;
+        }
+
+        #fragment h4 {
+            padding: 0;
+            margin: 0;
+            color: #000;
+        }
+
+        #close {
+            float: right;
+            display: inline-block;
+            padding: 2px 5px;
+            background: #ccc;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="fragment">
+        <div>
+            <span id='close' onclick='this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;'><strong>x</strong></span>
+            <img src='img/EK_box.png' />
+            <h3>Egedal-vejrkortet</h3>
+            Vejrkortet er et forsøg hvor vi arbejder med</br> lokale data som viser de faktiske vejrforhold.
+            Vejrdataet opdateres 1 gang i timen. </p> <strong>Kortet er pt. under konstruktion.</strong>
+
+        </div>
+    </div>
+
+
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map', {
+            zoomControl: false
+        })
+
+        // Låser kortet
+        map.setView([55.7614358, 12.218329], 11.5)
+        map.dragging.disable()
+        map.doubleClickZoom.disable()
+        map.scrollWheelZoom.disable();
+
+
+        // Markers, vejrstationer,
+        function createRealtimeLayer(url) {
+
+            return L.realtime(url, {
+                interval: 60 * 1000, // flyttet fra før getFetureId
+                pointToLayer: function(feature, latlng) {
+                    label = String('<h3>' + feature.properties.place + '</h3>' +
+                        'Temp: <strong>' + feature.properties.temp + '</strong>' +
+                        '<br />Vind: <strong>' + feature.properties.wind + '</strong>' +
+                        '<br />Nedbør: <strong>' + feature.properties.rain + '</strong></p>')
+                    return new L.marker(latlng, {
+                            'icon': L.icon.pulse({
+                                iconSize: [15, 15],
+                                color: 'green',
+                            })
+                        })
+                        .bindTooltip(label, {
+                            permanent: true,
+                            direction: 'top',
+                            interactive: true, // If true, the tooltip will listen to the feature events.
+                            opacity: 1.0
+                        }).openTooltip();
+                },
+
+                getFeatureId: function(f, l) {
+                    return f.properties.id;
+                },
+                cache: true
+            });
+
+
+        }
+
+        //createRealtimeLayer('http://kort.egelab.dk/vejrdata.json').addTo(map);
+        createRealtimeLayer('http://purgatoriet.dk/api/newpoints').addTo(map);
+
+
+
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> + || <a href="http://egelab.dk">EGELAB.DK</a> contributors'
+        }).addTo(map);
+
+
+        // Kommunegrænse
+        $.getJSON("EK.geojson", function(EK) {
+            var myStyle = {
+                "color": "green",
+                "weight": 5,
+                "fillOpacity": 0.00,
+            };
+            L.geoJson(EK, {
+                style: myStyle
+            }).addTo(map);
+        });
+
+
+        //EK kommunelogo
+        var EK = L.icon({
+            iconUrl: 'img/EK.png',
+
+            iconSize: [150, 150], // size of the icon
+            iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+            popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
+
+        L.marker([55.77943, 12.18665], {
+            icon: EK
+        }).addTo(map)
+
+    </script>
+
+
+</body>
+
+</html>

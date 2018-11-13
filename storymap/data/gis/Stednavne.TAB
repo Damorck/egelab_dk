@@ -1,0 +1,13 @@
+!table
+!version 300
+!charset WindowsLatin1
+
+Definition Table
+  Type NATIVE Charset "WindowsLatin1"
+  Fields 1
+    Stednavn Char (25) ;
+begin_metadata
+"\IsReadOnly" = "FALSE"
+"\MapInfo" = ""
+"\MapInfo\TableID" = "fcff9a8b-c6af-45f6-8b50-ab5488a64dcf"
+end_metadata
